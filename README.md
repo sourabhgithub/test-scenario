@@ -1,39 +1,58 @@
-# test-scenarioDescription
-Hey there, Gurus! Welcome to this hands-on lab. In this lab, you will first provision an EKS cluster with Terraform. Then, you will deploy an HTML5 web-based Pac-Man game that you can play in your browser to your EKS cluster with Terraform. Sounds like fun!
+The **Pull Request (PR)** process is an essential part of Git-based workflows, used for collaboration in software projects. Here's a step-by-step breakdown of a typical Pull Request process:
 
-Objectives
-Successfully complete this lab by achieving the following learning objectives:
+### 1. **Create a Branch**
+   - Before making any changes, create a new branch from the main branch (usually `main` or `master`).
+   - Example: 
+     ```bash
+     git checkout -b new-feature
+     ```
+   - This branch allows you to work in isolation without affecting the main codebase.
 
-Deploy Your EKS Cluster with Terraform
+### 2. **Make Changes in the Branch**
+   - Modify the code in your branch as needed.
+   - Use `git add` to stage the modified or new files, and then `git commit` to record those changes in the branch history.
+   - Example:
+     ```bash
+     git add modified-file.js
+     git commit -m "Add new feature"
+     ```
 
-In the AWS Management Console, in the IAM service, create an access key for the AWS CLI called Terraform_Access_Key.
-In the terminal, configure the AWS CLI to connect to your AWS instance.
-Download the EKS Terraform configuration.
-Unzip the EKS Terraform configuration zip file.
-Change into the eks directory and initialize your working directory.
-Deploy your EKS cluster with Terraform. (Note: This can take between 10 and 15 minutes.)
-Configure the Kubernetes CLI to use your EKS cluster context.
-Confirm your cluster is up and running.
-Complete the Terraform Configuration
+### 3. **Push the Branch to the Remote Repository**
+   - Once your changes are committed, push your branch to the remote repository.
+   - Example:
+     ```bash
+     git push origin new-feature
+     ```
 
-Download the Pac-Man Terraform configuration.
-Unzip the Pac-Man Terraform configuration zip file.
-Change into the pac-man directory.
-Add the provided Docker image to your Pac-Man deployment configuration.
-Update the main Terraform configuration file to include your two modules and pass the pac-man namespace to them.
-Save your changes and initialize your pac-man working directory.
-Validate your configuration.
-Deploy the Pac-Man Web Application with Terraform
+### 4. **Create the Pull Request (PR)**
+   - After pushing your branch, go to your Git platform (GitHub, GitLab, Bitbucket, etc.) and create a Pull Request.
+   - When creating the PR, select the target branch (usually `main` or `master`) and your feature branch (`new-feature`).
+   - Write a clear description of the changes you made and why.
 
-Apply the Terraform configuration and deploy the web application in the pac-man namespace.
-Confirm that your resources were deployed and are available.
-In a browser, launch the application and test that it's working by playing some Pac-Man!
-Scale the Kubernetes Web Application
+### 5. **Code Review**
+   - Team members or designated reviewers will review the PR to ensure the quality and functionality of the code.
+   - They may leave comments, suggestions, or request changes before the PR can be merged.
 
-Change the replicas in your deployment configurations to 2 backend pods and 3 frontend pods.
-Apply the changes to the Pac-Man web application with Terraform.
-Confirm the changes were successfully applied.
-In the browser, refresh the application and test that it is still working as expected.
-Scale the application back down to 1 backend pod and 1 frontend pod.
-Confirm the changes were successfully applied.
-In the browser, refresh the application again and test that it is still working as expected.
+### 6. **Address Feedback and Resolve Conflicts**
+   - If any changes are requested or there are merge conflicts with the main branch, update your code accordingly.
+   - After making the updates, commit and push again to the same branch, which will automatically update the PR.
+
+### 7. **Approve and Merge the PR**
+   - Once the PR is approved and there are no conflicts, it can be merged into the main branch.
+   - Depending on team policy, either the PR author or a reviewer can perform the merge.
+   - Platforms like GitHub offer several merge options, including `Merge Commit`, `Squash and Merge`, and `Rebase and Merge`.
+
+### 8. **Delete the Branch**
+   - After the PR is merged, it's a good practice to delete the feature branch as it's no longer needed.
+   - This can be done from the platform or using Git commands:
+     ```bash
+     git branch -d new-feature
+     git push origin --delete new-feature
+     ```
+
+### Best Practices:
+- Keep your PRs small and focused on a single feature or change.
+- Write clear commit messages and PR descriptions.
+- Ensure your code is well-documented and tested before submitting the PR.
+
+This process ensures that changes are reviewed, tested, and integrated safely into the project's main codebase.
