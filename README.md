@@ -1,9 +1,109 @@
-"canDeactivate" Error: The first error mentions TypeError: Cannot read properties of null (reading 'canDeactivate'). This suggests that somewhere in your code, an object or function expected to have a canDeactivate method is null or undefined. Review the logic where the canDeactivate method is invoked and ensure the object is properly initialized before calling this method.
+@Configuration
+@EnableBatchProcessing
+public class ZellMcJobConfig {
 
-API Payload Too Large (413 Errors): Several requests to the API failed with a "413 Payload Too Large" status. This indicates that the payload size being sent to the server is too large for it to handle. Check the size of the request payload, and consider either reducing the data size or modifying the server settings to allow larger payloads if necessary.
+    @Autowired
+    private JobBuilderFactory jobBuilderFactory;
 
-Multiple Select ngModel: The "Multiple select ngModel should be an array" warning indicates that you are binding a ngModel to a multi-select input that expects an array but is receiving a different type. Ensure that the ngModel for this component is correctly initialized as an array.
+    @Autowired
+    private StepBuilderFactory stepBuilderFactory;
 
-404 Not Found Error: There is a "404 Not Found" error when trying to fetch a resource from an API endpoint. This suggests that the URL being used might be incorrect or the resource no longer exists. Check the API endpoint to ensure it is valid and that the resource exists at the specified location.
+    @Autowired
+    private DataSource dataSource;
 
-Action Plan: Focus on debugging the "canDeactivate" logic first, as it's critical for handling component deactivation. Then, address the API payload size and 404 error by verifying the request body and the endpoint. Finally, correct the ngModel binding for the multi-select input.
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
+
+    @Bean
+    public Job cashExceptionsProcessJob(JobExecutionListener jobListener, 
+                                        Step loadRefDataStep, 
+                                        Step zelleMcReconExceptionsStep, 
+                                        Step createZelleMcReconExceptionsStep) {
+        return jobBuilderFactory.get("cashExceptionsProcessJob")
+                .incrementer(new RunIdIncrementer())
+                .listener(jobListener)
+                .start(loadRefDataStep)
+                .next(zelleMcReconExceptionsStep)
+                .next(createZelleMcReconExceptionsStep)
+                .build();
+    }
+
+    @Bean
+    public Step loadRefDataStep(PromotionListener promotionListener) {
+        return stepBuilderFactory.get("loadRefData")
+                .tasklet(loadRefDataTasklet())
+                .listener(promotionListener)
+                .build();
+    }
+
+    @Bean
+    public Step zelleMcReconExceptionsStep(PromotionListener promotionListener) {
+        return stepBuilderFactory.get("zelleMcReconExceptionsStep")
+                .tasklet(zelleMcReconExceptionsTasklet())
+                .listener(promotionListener)
+                .build();
+    }
+
+    @Bean
+    public Step createZelleMcReconExceptionsStep(PromotionListener promotionListener) {
+        return stepBuilderFactory.get("createZelleMcReconExceptionsStep")
+                .tasklet(createZelleMcReconExceptionsTasklet())
+                .listener(promotionListener)
+                .build();
+    }
+
+    @Bean
+    public Tasklet loadRefDataTasklet() {
+        LoadReferenceDataTasklet tasklet = new LoadReferenceDataTasklet();
+        tasklet.setDataSource(dataSource);
+        tasklet.setEntityManagerFactory(entityManagerFactory);
+        tasklet.setAcctPlanRefSql("batch.service.acct_plan.ref.query");
+        tasklet.setHolidayRefSql("batch.service.holiday.ref.query");
+        tasklet.setStateInfoRefSql("batch.service.state_info.ref.query");
+        tasklet.setTradeTxnRefSql("batch.service.tran_code.ref.query");
+        return tasklet;
+    }
+
+    @Bean
+    public Tasklet zelleMcReconExceptionsTasklet() {
+        ProcessReconExceptionsTasklet tasklet = new ProcessReconExceptionsTasklet();
+        tasklet.setDataSource(dataSource);
+        tasklet.setMissingInCashSql("zelle.mc.recon.missing.in.cash.query");
+        tasklet.setMissingInReconTblSql("zelle.mc.recon.missing.in.mc.query");
+        tasklet.setAcctPlanRefSql("batch.service.acct_plan.ref.query");
+        return tasklet;
+    }
+
+    @Bean
+    public Tasklet createZelleMcReconExceptionsTasklet() {
+        CreateReconExceptionsTasklet tasklet = new CreateReconExceptionsTasklet();
+        tasklet.setDataSource(dataSource);
+        tasklet.setCashTranExceptInsertSql("visa.mc.cash.tran.except.insert");
+        tasklet.setCashTranStatExceptInsertSql("cash.tran.stat.except.insert");
+        tasklet.setAcctTranExceptInsertSql("acct.tran.except.insert");
+        tasklet.setCashTranStat2InsertSql("cash.tran.stat2.insert");
+        tasklet.setCashTranStat2RevInsertSql("cash.tran.stat2.rev.insert");
+        tasklet.setAcctEntImpacsExceptInsertSql("acct.ent.impacs.except.insert");
+        tasklet.setWipToWipAcctEntInsertSql("wipToWipAcctEntInsertSql");
+        return tasklet;
+    }
+
+    @Bean
+    public PromotionListener promotionListener() {
+        PromotionListener promotionListener = new PromotionListener();
+        promotionListener.setKeys(Arrays.asList("domainDataKey", "cashPayLoadData", "exceptTranList"));
+        return promotionListener;
+    }
+
+    @Bean
+    public JobExecutionListener jobListener() {
+        return new CashExceptionsBatchJobListener();
+    }
+
+    @Bean
+    public KieBaseManager kieBaseManager() {
+        KieBaseManager manager = new KieBaseManager();
+        manager.init(); // Initialize manager if needed
+        return manager;
+    }
+}
